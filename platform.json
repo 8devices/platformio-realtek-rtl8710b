@@ -1,0 +1,35 @@
+{
+  "name": "realtekamebaz",
+  "title": "Realtek Amebaz",
+  "engines": {
+    "platformio": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git_link"
+  },
+  "version": "0.0.0",
+  "packageRepositories": ["repository_link1","repository_link2"],
+  "frameworks": {
+    "sdk-ameba-v4.0b": {
+      "package": "framework-sdk-ameba-v4.0b-gcc",
+      "script": "builder/frameworks/sdk-ameba-v4.0b.py"
+    },
+    "sdk-ameba-v4.0c": {
+      "package": "framework-sdk-ameba-v4.0c-gcc",
+      "script": "builder/frameworks/sdk-ameba-v4.0c.py"
+    }
+  },
+  "packages": {
+    "framework-sdk-ameba-v4.0b-gcc": {
+      "type": "framework",
+      "optional": true,
+      "version": "git@github.com:taubel/sdk-ameba-v4.0b-gcc.git"
+    },
+    "framework-sdk-aneba-v4.0c-gcc": {
+      "type": "framework",
+      "optional": true,
+      "version": "GIT_LINK"
+     }
+   }
+}
