@@ -13,7 +13,6 @@
     "wifi"
   ],
   "frameworks": [
-    "arduino",
     "sdk-ameba-v4.0b"
   ],
   "name": "Espressif Generic ESP8266 ESP-01 1M",

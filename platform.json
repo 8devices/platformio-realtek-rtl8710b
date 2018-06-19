@@ -26,7 +26,7 @@
       "optional": true,
       "version": "git@github.com:taubel/sdk-ameba-v4.0b-gcc.git"
     },
-    "framework-sdk-aneba-v4.0c-gcc": {
+    "framework-sdk-ameba-v4.0c-gcc": {
       "type": "framework",
       "optional": true,
       "version": "GIT_LINK"
