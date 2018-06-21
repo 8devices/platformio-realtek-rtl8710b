@@ -4,10 +4,12 @@ from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, D
 from platformio import util
 
 env = DefaultEnvironment()
-platform = env.PioPlatform()
 
-# CIA IS PLATFORMIO.INI "upload_flags"
-#print(env["UPLOAD_FLAGS"])
+#print(env["BUILD_FLAGS"]) - lauztiniuose skliaustuose, vienose kabutese, atskirta tarpais
+#print(env.subst("$BUILD_FLAGS")) - atskirta tarpais
+#print("$BUILD_FLAGS") - atspausdina $BUILD_FLAGS
+
+env["CPPDEFINES"] = []
 
 env.Replace(
 
@@ -20,9 +22,8 @@ env.Replace(
 	OBJCOPY = "arm-none-eabi-objcopy",
 	OBJDUMP = "arm-none-eabi-objdump",
 
-	CFLAGS = [
-		"-DM3",
-		"-DCONFIG_PLATFORM_8711B",
+#	KAI KURIE IS SITU TURETU KELIAUT I BOARD CONFIG ---------
+	CCFLAGS = [
 		"-mcpu=cortex-m4",
 		"-mthumb",
 		"-mfloat-abi=hard",
@@ -37,10 +38,17 @@ env.Replace(
 		"-fdata-sections",
 		"-fomit-frame-pointer",
 		"-fno-short-enums",
-		"-DF_CPU=166000000L",
 		"-std=gnu99",
 		"-fsigned-char"
 	],
+
+	CPPDEFINES = [
+		"M3",
+		"CONFIG_PLATFORM_8711B",
+		"F_CPU=166000000L",
+	],
+#	---------------------------------------------------------
+
 	LINKFLAGS = [
 		"-mcpu=cortex-m4",
 		"-mthumb",
@@ -58,7 +66,7 @@ env.Replace(
 		"-Wl,--no-wchar-size-warning",
 		"-Wl,-wrap,malloc",
 		"-Wl,-wrap,free",
-		"-Wl,-wrap,realloc"
+		"-Wl,-wrap,realloc",
 	]
 )
 def printenv(target, source, env):
@@ -69,6 +77,11 @@ def printenv(target, source, env):
 	print('--')
 #	print(env["SOURCE_LIST"])
 #	print(SOURCES_LIST)
+
+def prefix_cppdefines(env):
+	prefix = "-D"
+	env["CPPDEFINES"] = [prefix + s for s in env["CPPDEFINES"]]
+	return env["CPPDEFINES"]
 
 def prefix_includes(env):
 	prefix = "-I"
@@ -86,13 +99,20 @@ def prefix_libpaths(env):
 	return env["LIBPATH"]
 
 def replace_rtl(env):
-	with open("%s/openocd/scripts/_rtl_gdb_flash_write.txt" % env["FRAMEWORK_DIR"], "rt") as fin:
-		with open("%s/openocd/scripts/rtl_gdb_flash_write.txt" % env["FRAMEWORK_DIR"], "wt") as fout:
+	with open("%s/openocd/scripts/%s/_rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
+		with open("%s/openocd/scripts/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "wt") as fout:
 			for line in fin:
-				fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/openocd/scripts' % env["FRAMEWORK_DIR"]))
+				fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/openocd/scripts/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
+
+def board_flags(env):
+	if "BOARD" in env and "build.extra_flags" in env.BoardConfig():
+		env.ProcessFlags(env.BoardConfig().get("build.extra_flags"))
 
 prerequirement = [
 	env.BuildFrameworks(env.get("PIOFRAMEWORK")),
+	env.ProcessFlags(env.get("BUILD_FLAGS")),
+	board_flags(env),
+	env.ProcessUnFlags(env.get("BUILD_UNFLAGS")),
 	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
 	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET"),
 		]
@@ -110,13 +130,14 @@ manipulating = [
 	]
 
 uploading = [
-	env.VerboseAction('echo -n "set $$" > %s/openocd/scripts/BTAsize.gdb' % env["FRAMEWORK_DIR"], 'Uploading binary'),
-	env.VerboseAction('echo "BOOTALLFILESize = 0x$$(echo "obase=16; $$(stat -c %%s %s)"|bc)" >> %s/openocd/scripts/BTAsize.gdb' % (env["BOOTALL_BIN"], env["FRAMEWORK_DIR"]), '.'),
-	env.VerboseAction('echo -n "set $$" > %s/openocd/scripts/fwsize.gdb' % env["FRAMEWORK_DIR"], '.'),
-	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/openocd/scripts/fwsize.gdb' % env["FRAMEWORK_DIR"], '.'),
+	env.VerboseAction('echo -n "set $$" > %s/openocd/scripts/%s/BTAsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), 'Uploading binary'),
+	env.VerboseAction('echo "BOOTALLFILESize = 0x$$(echo "obase=16; $$(stat -c %%s %s)"|bc)" >> %s/openocd/scripts/%s/BTAsize.gdb' % (env["BOOTALL_BIN"], env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
+	env.VerboseAction('echo -n "set $$" > %s/openocd/scripts/%s/fwsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
+	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/openocd/scripts/%s/fwsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
 	replace_rtl(env),
 	env.VerboseAction('cp %s $BUILD_DIR/boot_all.bin' % env["BOOTALL_BIN"], '.'),
-	env.VerboseAction('export FRAMEWORK_DIR="%s"; sh %s/openocd/scripts/openocd.sh' % (env["FRAMEWORK_DIR"], env["FRAMEWORK_DIR"]), '.'),
+#	env.VerboseAction('export FRAMEWORK="%s"; export PLATFORM_DIR="%s"; sh %s/openocd/scripts/%s/openocd.sh' % (''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
+	env.VerboseAction('openocd -f interface/cmsis-dap.cfg -f %s/openocd/scripts/%s/amebaz.cfg -c "init" > /dev/null 2>&1 &  export ocdpid=$! ; arm-none-eabi-gdb -batch --init-eval-command="dir %s/openocd/scripts/%s" -x %s/openocd/scripts/%s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
 	]
 
 env.Append(
@@ -126,7 +147,7 @@ env.Append(
 		Linker = Builder(
 			action = env.VerboseAction("$LD $LINKFLAGS -o $TARGET $SOURCES %s %s -T$LDSCRIPT_PATH" % (' '.join(prefix_libpaths(env)), ' '.join(prefix_libs(env))), "Linking $TARGET")),
 		Compiler = Builder(
-			action = env.VerboseAction("$CC $CFLAGS %s -c $SOURCES -o $TARGET" % ' '.join(prefix_includes(env)), "Compiling $TARGET"),
+			action = env.VerboseAction("$CC %s $CCFLAGS %s -c $SOURCES -o $TARGET" % (' '.join(prefix_cppdefines(env)), ' '.join(prefix_includes(env))), "Compiling $TARGET"),
 			suffix = ".o",
 			single_source = 1),
 		Manipulate = Builder(

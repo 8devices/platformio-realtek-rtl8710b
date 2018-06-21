@@ -10,18 +10,17 @@ platform = env.PioPlatform()
 
 FRAMEWORK_DIR = platform.get_package_dir("framework-sdk-ameba-v4.0b-gcc")
 assert isdir(FRAMEWORK_DIR)
-
+env["PLATFORM_DIR"] = platform.get_dir()
 env["BOOTALL_BIN"] = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/image/boot_all.bin"
 env["FRAMEWORK_DIR"] = FRAMEWORK_DIR
 AMEBA_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/iar_utility/common/tools"
 FLASH_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8195a/misc/gcc_utility"
 FLASHDOWNLOAD_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gnu_utility/flash_download/image"
 DEBUG_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gcc_utility"
-PROJECTINCLUDE_DIR = util.get_projectinclude_dir()
 
 env.Append(
 	CPPPATH = [
-		PROJECTINCLUDE_DIR,
+		env.subst("$PROJECTINCLUDE_DIR"),
 		FRAMEWORK_DIR + "/component/os/freertos",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/include",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/GCC/ARM_CM4F",
@@ -87,11 +86,11 @@ env.Append(
 	],
 
 	LIBPATH=[
-		FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/lib/common/GCC"
+		FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/lib/common/GCC",
 	],
 
 	LIBS=[
-		"_platform", "_wlan", "_wps", "_dct", "_rtlstd", "m", "c", "nosys", "gcc", "_websocket", "_http", "_mdns"
+		"_platform", "_wlan", "_wps", "_rtlstd", "_dct", "m", "c", "nosys", "gcc", "_websocket", "_http", "_mdns"
 	]
 )
 
