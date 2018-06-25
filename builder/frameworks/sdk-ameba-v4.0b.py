@@ -106,7 +106,6 @@ env.Replace(
 )
 
 env["SOURCE_LIST"] = [
-	env.subst("$PROJECTSRC_DIR") + "/main.c",
 	FRAMEWORK_DIR + "/component/common/api/at_cmd/atcmd_lwip.c",
 	FRAMEWORK_DIR + "/component/common/api/wifi/wifi_conf.c",
 	FRAMEWORK_DIR + "/component/common/application/uart_adapter/uart_adapter.c",
@@ -302,5 +301,22 @@ env["SOURCE_LIST"] = [
 	FRAMEWORK_DIR + "/component/common/utilities/webserver.c",
 	FRAMEWORK_DIR + "/component/common/utilities/xml.c",
 	]
+
+index = 0
+
+sources = env.CollectBuildFiles(
+		"$BUILDSRC_DIR",
+		"$PROJECTSRC_DIR",
+		src_filter = env.get("SRC_FILTER"))
+
+for s in env["LIBSOURCE_DIRS"]:
+	index = index + 1
+	sources.extend(
+		env.CollectBuildFiles(
+			"$BUILD_DIR/lib_dir%d" % index,
+			s,
+			src_filter = env.get("SRC_FILTER")))
+
+env["SOURCE_LIST"] = sources + env["SOURCE_LIST"]
 
 

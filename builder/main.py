@@ -5,9 +5,14 @@ from platformio import util
 
 env = DefaultEnvironment()
 
-#print(env["BUILD_FLAGS"]) - lauztiniuose skliaustuose, vienose kabutese, atskirta tarpais
-#print(env.subst("$BUILD_FLAGS")) - atskirta tarpais
-#print("$BUILD_FLAGS") - atspausdina $BUILD_FLAGS
+env["SRC_FILTER"] = [
+		"+<*>",
+		"-<.git/>",
+		"-<svn/>",
+		"-<example/>",
+		"-<examples/>",
+		"-<test/>",
+		"-<tests/>"]
 
 env["CPPDEFINES"] = []
 
@@ -69,14 +74,6 @@ env.Replace(
 		"-Wl,-wrap,realloc",
 	]
 )
-def printenv(target, source, env):
-#	ENV KINTAMIEJI (VELIAU ISTRINT)
-#	print(env.subst("$AMEBA_SOURCES")) - atskirta tarpais
-#	print(env["AMEBA_SOURCES"])        - lauztiniuose skliaustuose, kiekvienas kabutese, atskirta kableliais
-#	print(env.get("$AMEBA_SOURCES"))   - nieko
-	print('--')
-#	print(env["SOURCE_LIST"])
-#	print(SOURCES_LIST)
 
 def prefix_cppdefines(env):
 	prefix = "-D"
@@ -136,7 +133,6 @@ uploading = [
 	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/openocd/scripts/%s/fwsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
 	replace_rtl(env),
 	env.VerboseAction('cp %s $BUILD_DIR/boot_all.bin' % env["BOOTALL_BIN"], '.'),
-#	env.VerboseAction('export FRAMEWORK="%s"; export PLATFORM_DIR="%s"; sh %s/openocd/scripts/%s/openocd.sh' % (''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
 	env.VerboseAction('openocd -f interface/cmsis-dap.cfg -f %s/openocd/scripts/%s/amebaz.cfg -c "init" > /dev/null 2>&1 &  export ocdpid=$! ; arm-none-eabi-gdb -batch --init-eval-command="dir %s/openocd/scripts/%s" -x %s/openocd/scripts/%s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
 	]
 
