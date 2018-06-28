@@ -96,7 +96,7 @@ env.Append(
 
 env.Replace(
 	LDSCRIPT_PATH = [
-		FRAMEWORK_DIR + "/project/realtek_amebaz_va0_example/GCC-RELEASE/rlx8711B-symbol-v02-img2_xip1.ld",
+		env["PLATFORM_DIR"] + "/scripts/ld/sdk-ameba-v4.0b/rlx8711B-symbol-v02-img2_xip1.ld",
 			],
 
 	PICK = AMEBA_TOOLDIR + "/pick",
