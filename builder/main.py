@@ -18,17 +18,18 @@ except KeyError:
 		"-<tests/>"]
 
 env["CPPDEFINES"] = []
+GCC_TOOLCHAIN = ""
 
 env.Replace(
 
-	AR = "arm-none-eabi-ar",
-	CC = "arm-none-eabi-gcc",
-	AS = "arm-none-eabi-as",
-	NM = "arm-none-eabi-nm",
-	LD = "arm-none-eabi-gcc",
-	GDB = "arm-none-eabi-gdb",
-	OBJCOPY = "arm-none-eabi-objcopy",
-	OBJDUMP = "arm-none-eabi-objdump",
+	AR = GCC_TOOLCHAIN + "arm-none-eabi-ar",
+	CC = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
+	AS = GCC_TOOLCHAIN + "arm-none-eabi-as",
+	NM = GCC_TOOLCHAIN + "arm-none-eabi-nm",
+	LD = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
+	GDB = GCC_TOOLCHAIN + "arm-none-eabi-gdb",
+	OBJCOPY = GCC_TOOLCHAIN + "arm-none-eabi-objcopy",
+	OBJDUMP = GCC_TOOLCHAIN + "arm-none-eabi-objdump",
 
 #	KAI KURIE IS SITU TURETU KELIAUT I BOARD CONFIG ---------
 	CCFLAGS = [

@@ -309,7 +309,7 @@ sources = env.CollectBuildFiles(
 		"$PROJECTSRC_DIR",
 		src_filter = env.get("SRC_FILTER"))
 
-for s in env["LIBSOURCE_DIRS"]:
+for s in list(set(env["LIBSOURCE_DIRS"])):
 	index = index + 1
 	sources.extend(
 		env.CollectBuildFiles(
