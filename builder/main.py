@@ -17,13 +17,14 @@ except KeyError:
 		"-<test/>",
 		"-<tests/>"]
 
-env["CPPDEFINES"] = []
+#env["CPPDEFINES"] = []
 GCC_TOOLCHAIN = ""
 
 env.Replace(
 
 	AR = GCC_TOOLCHAIN + "arm-none-eabi-ar",
 	CC = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
+	CXX = GCC_TOOLCHAIN + "arm-none-eabi-g++",
 	AS = GCC_TOOLCHAIN + "arm-none-eabi-as",
 	NM = GCC_TOOLCHAIN + "arm-none-eabi-nm",
 	LD = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
@@ -31,7 +32,7 @@ env.Replace(
 	OBJCOPY = GCC_TOOLCHAIN + "arm-none-eabi-objcopy",
 	OBJDUMP = GCC_TOOLCHAIN + "arm-none-eabi-objdump",
 
-#	KAI KURIE IS SITU TURETU KELIAUT I BOARD CONFIG ---------
+#	BOARD_CONFIG?
 	CCFLAGS = [
 		"-mcpu=cortex-m4",
 		"-mthumb",
@@ -39,24 +40,36 @@ env.Replace(
 		"-mfpu=fpv4-sp-d16",
 		"-g2",
 		"-w",
-		"-O2",
-		"-Wno-pointer-sign",
 		"-fno-common",
 		"-fmessage-length=0",
 		"-ffunction-sections",
 		"-fdata-sections",
 		"-fomit-frame-pointer",
 		"-fno-short-enums",
-		"-std=gnu99",
-		"-fsigned-char"
-	],
 
+#	MANO
+#	//MANO
+	],
+	CFLAGS = [
+#	MANO
+		"-std=gnu99",
+#	//MANO
+		"-fsigned-char",
+		"-Wno-pointer-sign",
+	],
+	CXXFLAGS = [
+#	MANO
+		"-fno-exceptions",
+		"-std=c++11",
+		"-fno-rtti",
+#	//MANO
+	],
 	CPPDEFINES = [
 		"M3",
 		"CONFIG_PLATFORM_8711B",
 		"F_CPU=166000000L",
 	],
-#	---------------------------------------------------------
+#	//BOARD_CONFIG?
 
 	LINKFLAGS = [
 		"-mcpu=cortex-m4",
@@ -86,8 +99,8 @@ def prefix_cppdefines(env):
 
 def prefix_includes(env):
 	prefix = "-I"
-	INCLUDES = [prefix + s for s in env["CPPPATH"]]
-	return INCLUDES
+	env["CPPPATH"] = [prefix + s for s in env["CPPPATH"]]
+	return env["CPPPATH"]
 
 def prefix_libs(env):
 	prefix = "-l"
@@ -116,11 +129,13 @@ def board_flags(env):
 		env.ProcessFlags(env.BoardConfig().get("build.extra_flags"))
 
 prerequirement = [
-	env.BuildFrameworks(env.get("PIOFRAMEWORK")),
 	env.ProcessFlags(env.get("BUILD_FLAGS")),
 	board_flags(env),
+	env.BuildFrameworks(env.get("PIOFRAMEWORK")),
 	replace_ld(env),
 	env.ProcessUnFlags(env.get("BUILD_UNFLAGS")),
+	#prefix_cppdefines(env),
+	#prefix_includes(env),
 	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
 	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET"),
 		]
@@ -153,16 +168,17 @@ env.Append(
 			action = env.VerboseAction(prerequirement, "Executing prerequirements")),
 		Linker = Builder(
 			action = env.VerboseAction("$LD $LINKFLAGS -o $TARGET $SOURCES %s %s -T$LDSCRIPT_PATH" % (' '.join(prefix_libpaths(env)), ' '.join(prefix_libs(env))), "Linking $TARGET")),
-		Compiler = Builder(
-			action = env.VerboseAction("$CC %s $CCFLAGS %s -c $SOURCES -o $TARGET" % (' '.join(prefix_cppdefines(env)), ' '.join(prefix_includes(env))), "Compiling $TARGET"),
-			suffix = ".o",
-			single_source = 1),
+#		Compiler = Builder(
+#			action = env.VerboseAction("$CC %s $CCFLAGS %s -c $SOURCES -o $TARGET" % (' '.join(prefix_cppdefines(env)), ' '.join(prefix_includes(env))), "Compiling $TARGET"),
+#			suffix = ".o",
+#			single_source = 1),
 		Manipulate = Builder(
 			action = env.VerboseAction(manipulating, "Manipulating images")),
 		)
 )
 prerequirement_b = env.Prerequirement(("$BUILD_DIR/boot_all.o"), (env["BOOTALL_BIN"]))
-compiler_b = env.Compiler(env["SOURCE_LIST"])
+compiler_b = env.Object(env["SOURCE_LIST"])
+#compiler_b = env.Compiler(env["SOURCE_LIST"])
 linker_b = env.Linker("$BUILD_DIR/program.axf", [prerequirement_b, compiler_b])
 manipulate_images_b = env.Manipulate("$BUILD_DIR/image2_all_ota1.bin", linker_b)
 #env.AddPreAction(prerequirement_b, "ls")
