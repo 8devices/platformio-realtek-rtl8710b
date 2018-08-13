@@ -2,6 +2,11 @@
   "build": {
 },
   "upload": {
+    "maximum_ram_size": 81920,
+    "maximum_size": 4194304,
+    "require_upload_port": true,
+    "resetmethod": "nodemcu",
+    "speed": 115200
 },
   "frameworks": [
     "sdk-ameba-v4.0b"
