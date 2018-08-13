@@ -332,7 +332,6 @@ sources = sources + freertos_sources
 
 libs = []
 libs.append(env.BuildLibrary(
-    join("$BUILD_DIR", "SDK"),
-    "/home/tautvydas/.platformio/packages/framework-sdk-ameba-v4.0b-gcc", sources
+    join("$BUILD_DIR", "SDK"), FRAMEWORK_DIR, sources
 ))
 env.Prepend(LIBS=libs)
