@@ -98,7 +98,7 @@ def get_bootallbin_dir(env):
 
 def replace_rtl(env):
         with open("%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
-                with open("%s/rtl_gdb_flash_write.txt" % (env["BUILD_DIR"]), "wt") as fout:
+                with open("%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"])), "wt") as fout:
                         for line in fin:
                                 fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
 
