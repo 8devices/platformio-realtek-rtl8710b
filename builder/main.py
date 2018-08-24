@@ -1,4 +1,5 @@
 import sys
+import os
 from os.path import basename, join
 from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, DefaultEnvironment)
 from platformio import util
@@ -97,8 +98,16 @@ def get_bootallbin_dir(env):
 		raise Exception("Framework '%s' is invalid\r\n" % ''.join(env["PIOFRAMEWORK"]))
 
 def replace_rtl(env):
-        with open("%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
-                with open("%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"])), "wt") as fout:
+	infile = "%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))
+	outfile = "%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"]))
+	if not os.path.exists(os.path.dirname(outfile)):
+		try:
+			os.makedirs(os.path.dirname(outfile))
+		except OSError as exc:
+			if exc.errno != errno.EEXIST:
+				raise
+        with open(infile, "rt") as fin:
+                with open(outfile, "wt") as fout:
                         for line in fin:
                                 fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
 
