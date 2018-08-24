@@ -9,7 +9,7 @@
     "url": "git_link"
   },
   "version": "1.0.0",
-  "packageRepositories": ["repository_link1","repository_link2"],
+  "packageRepositories": ["https://dl.bintray.com/taubel/test_manifest/test.json"],
   "frameworks": {
     "sdk-ameba-v4.0b": {
       "package": "framework-sdk-ameba-v4.0b-gcc",
