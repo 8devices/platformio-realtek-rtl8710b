@@ -1,4 +1,5 @@
 import sys
+import os
 from os.path import basename, join
 from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, DefaultEnvironment)
 from platformio import util
@@ -21,6 +22,7 @@ env.Replace(
 	GDB = GCC_TOOLCHAIN + "arm-none-eabi-gdb",
 	OBJCOPY = GCC_TOOLCHAIN + "arm-none-eabi-objcopy",
 	OBJDUMP = GCC_TOOLCHAIN + "arm-none-eabi-objdump",
+	SIZETOOL = GCC_TOOLCHAIN + "arm-none-eabi-size",
 
 #	BOARD_CONFIG?
 	CCFLAGS = [
@@ -81,6 +83,11 @@ env.Replace(
 		"-Wl,-wrap,realloc",
 	],
 
+	SIZEPROGREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.text|\.ram_image2\.data|\.ram_heap\.data|\.xip_image2\.text|)\s+([0-9]+).*",
+	SIZEDATAREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.data|\.ram_heap\.data|\.ram_image2\.bss|\.ram_image2\.skb\.bss|)\s+([0-9]+).*",
+	SIZECHECKCMD='$SIZETOOL -A -d $SOURCES',
+	SIZEPRINTCMD='$SIZETOOL -B -d $SOURCES',
+
 	PROGSUFFIX = ".elf"
 )
 
@@ -97,8 +104,16 @@ def get_bootallbin_dir(env):
 		raise Exception("Framework '%s' is invalid\r\n" % ''.join(env["PIOFRAMEWORK"]))
 
 def replace_rtl(env):
-        with open("%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
-                with open("%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"])), "wt") as fout:
+	infile = "%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))
+	outfile = "%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"]))
+	if not os.path.exists(os.path.dirname(outfile)):
+		try:
+			os.makedirs(os.path.dirname(outfile))
+		except OSError as exc:
+			if exc.errno != errno.EEXIST:
+				raise
+        with open(infile, "rt") as fin:
+                with open(outfile, "wt") as fout:
                         for line in fin:
                                 fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
 
@@ -143,8 +158,10 @@ env.Append(
 prerequirement_b = env.Prerequirement("$BUILD_DIR/boot_all.o", env["BOOTALL_BIN"])
 program_b = env.BuildProgram()
 manipulate_images_b = env.Manipulate("$BUILD_DIR/image2_all_ota1.bin", [program_b, prerequirement_b])
+
 upload = env.Alias("upload", manipulate_images_b, uploading)
 AlwaysBuild(upload)
+
 Default([manipulate_images_b])
 
 
