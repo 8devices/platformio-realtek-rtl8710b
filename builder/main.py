@@ -97,20 +97,13 @@ def get_bootallbin_dir(env):
 		raise Exception("Framework '%s' is invalid\r\n" % ''.join(env["PIOFRAMEWORK"]))
 
 def replace_rtl(env):
-        with open("%s/scripts/openocd/%s/_rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
-                with open("%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "wt") as fout:
+        with open("%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
+                with open("%s/rtl_gdb_flash_write.txt" % (env["BUILD_DIR"]), "wt") as fout:
                         for line in fin:
                                 fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
 
-def replace_ld(env):
-        with open("%s/scripts/ld/%s/_rlx8711B-symbol-v02-img2_xip1.ld" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "rt") as fin:
-                with open("%s/scripts/ld/%s/rlx8711B-symbol-v02-img2_xip1.ld" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), "wt") as fout:
-                        for line in fin:
-                                fout.write(line.replace('PLATFORMDIR', '%s' % env.subst(env["PLATFORM_DIR"])).replace('FRAMEWORK', '%s' % ''.join(env["PIOFRAMEWORK"])))
-
 prerequirement = [
 	get_bootallbin_dir(env),
-	replace_ld(env),
 	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
 	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET"),
 	env.Append(PIOBUILDFILES = "%s/boot_all.o" % env["BUILD_DIR"])
@@ -129,13 +122,13 @@ manipulating = [
 	]
 
 uploading = [
-	env.VerboseAction('echo -n "set $$" > %s/scripts/openocd/%s/BTAsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), 'Uploading binary'),
-	env.VerboseAction('echo "BOOTALLFILESize = 0x$$(echo "obase=16; $$(stat -c %%s %s)"|bc)" >> %s/scripts/openocd/%s/BTAsize.gdb' % (env["BOOTALL_BIN"], env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
-	env.VerboseAction('echo -n "set $$" > %s/scripts/openocd/%s/fwsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
-	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/scripts/openocd/%s/fwsize.gdb' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
+	env.VerboseAction('echo -n "set $$" > %s/BTAsize.gdb' % (env["BUILD_DIR"]), 'Uploading binary'),
+	env.VerboseAction('echo "BOOTALLFILESize = 0x$$(echo "obase=16; $$(stat -c %%s %s)"|bc)" >> %s/BTAsize.gdb' % (env["BOOTALL_BIN"], env["BUILD_DIR"]), '.'),
+	env.VerboseAction('echo -n "set $$" > %s/fwsize.gdb' % (env["BUILD_DIR"]), '.'),
+	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/fwsize.gdb' % (env["BUILD_DIR"]), '.'),
 	replace_rtl(env),
 	env.VerboseAction('cp %s $BUILD_DIR/boot_all.bin' % env["BOOTALL_BIN"], '.'),
-	env.VerboseAction('openocd -f interface/cmsis-dap.cfg -f %s/scripts/openocd/%s/amebaz.cfg -c "init" > /dev/null 2>&1 &  export ocdpid=$! ; arm-none-eabi-gdb -batch --init-eval-command="dir %s/scripts/openocd/%s" -x %s/scripts/openocd/%s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"])), '.'),
+	env.VerboseAction('openocd -f interface/cmsis-dap.cfg -f %s/scripts/openocd/%s/amebaz.cfg -c "init" > /dev/null 2>&1 &  export ocdpid=$! ; arm-none-eabi-gdb -batch --init-eval-command="dir %s/scripts/openocd/%s" -x %s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["BUILD_DIR"]), '.'),
 	]
 
 env.Append(

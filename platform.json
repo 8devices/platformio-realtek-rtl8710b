@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git_link"
   },
-  "version": "0.0.0",
+  "version": "1.0.0",
   "packageRepositories": ["repository_link1","repository_link2"],
   "frameworks": {
     "sdk-ameba-v4.0b": {
@@ -30,6 +30,10 @@
       "type": "framework",
       "optional": true,
       "version": "GIT_LINK"
+     },
+    "toolchain-realtek": {
+      "type": "toolchain",
+      "version": ">=1.0.0"
      }
    }
 }

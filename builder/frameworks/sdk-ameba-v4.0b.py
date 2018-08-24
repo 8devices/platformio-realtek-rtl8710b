@@ -79,6 +79,7 @@ env.Append(
 
 	LIBPATH=[
 		FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/lib/common/GCC",
+		env["PLATFORM_DIR"] + "/scripts/ld/sdk-ameba-v4.0b",
 	],
 
 	LIBS=[

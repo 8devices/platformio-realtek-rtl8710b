@@ -22,8 +22,8 @@ set $SPI_FLASH_BASE = 0x08000000
 #binary file size
 set $BOOTALLFileSize = 0x0000
 set $RamFileSize = 0x0000
-source BTAsize.gdb
-source fwsize.gdb
+source BUILD_DIR/BTAsize.gdb
+source BUILD_DIR/fwsize.gdb
 printf "-------------------------------\n"
 printf "BOOTALLFileSize: %x\n",$BOOTALLFILESize
 printf "RamFileSize: %x\n",$RamFileSize

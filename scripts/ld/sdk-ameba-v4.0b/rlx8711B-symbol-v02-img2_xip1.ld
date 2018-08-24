@@ -2,7 +2,7 @@
 
 ENTRY(Reset_Handler)
 
-INCLUDE "PLATFORMDIR/scripts/ld/FRAMEWORK/export-rom_symbol_v01.txt"
+INCLUDE "export-rom_symbol_v01.txt"
 
 MEMORY
 {
