@@ -32,8 +32,12 @@
       "version": "GIT_LINK"
      },
     "toolchain-realtek": {
+      "optional": "true",
       "type": "toolchain",
       "version": ">=1.0.0"
-     }
+     },
+    "toolchain-gccarmnoneeabi": {
+      "type": "toolchain",
+      "version": "1.40804.0"
    }
 }
