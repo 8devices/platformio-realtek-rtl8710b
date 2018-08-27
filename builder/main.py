@@ -6,9 +6,10 @@ from platformio import util
 
 env = DefaultEnvironment()
 
-GCC_TOOLCHAIN = ""
 platform = env.PioPlatform()
 env["PLATFORM_DIR"] = platform.get_dir()
+TOOLCHAIN_DIR = platform.get_package_dir("toolchain-realtek")
+GCC_TOOLCHAIN = TOOLCHAIN_DIR + "/arm-none-eabi-gcc/4_8-2014q3/bin/"
 
 env.Replace(
 
