@@ -39,5 +39,6 @@
     "toolchain-gccarmnoneeabi": {
       "type": "toolchain",
       "version": "1.40804.0"
+     }
    }
 }
