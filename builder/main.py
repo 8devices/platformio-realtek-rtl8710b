@@ -6,9 +6,11 @@ from platformio import util
 
 env = DefaultEnvironment()
 
-GCC_TOOLCHAIN = ""
 platform = env.PioPlatform()
 env["PLATFORM_DIR"] = platform.get_dir()
+TOOLCHAIN_DIR = platform.get_package_dir("toolchain-realtek")
+GCC_TOOLCHAIN = TOOLCHAIN_DIR + "/arm-none-eabi-gcc/4_8-2014q3/bin/"
+env["BOOTALL_BIN"] = ""
 
 env.Replace(
 
@@ -22,6 +24,7 @@ env.Replace(
 	GDB = GCC_TOOLCHAIN + "arm-none-eabi-gdb",
 	OBJCOPY = GCC_TOOLCHAIN + "arm-none-eabi-objcopy",
 	OBJDUMP = GCC_TOOLCHAIN + "arm-none-eabi-objdump",
+	SIZETOOL = GCC_TOOLCHAIN + "arm-none-eabi-size",
 
 #	BOARD_CONFIG?
 	CCFLAGS = [
@@ -82,20 +85,16 @@ env.Replace(
 		"-Wl,-wrap,realloc",
 	],
 
+	SIZEPROGREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.text|\.ram_image2\.data|\.ram_heap\.data|\.xip_image2\.text|)\s+([0-9]+).*",
+	SIZEDATAREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.data|\.ram_heap\.data|\.ram_image2\.bss|\.ram_image2\.skb\.bss|)\s+([0-9]+).*",
+	SIZECHECKCMD='$SIZETOOL -A -d $SOURCES',
+	SIZEPRINTCMD='$SIZETOOL -B -d $SOURCES',
+
 	PROGSUFFIX = ".elf"
 )
 
 if env.get("PROGNAME", "program") == "program":
     env.Replace(PROGNAME="firmware")
-
-frameworks = {
-	"sdk-ameba-v4.0b":env["PIOHOME_DIR"] + "/packages/framework-sdk-ameba-v4.0b-gcc/component/soc/realtek/8711b/misc/bsp/image/boot_all.bin"
-}
-
-def get_bootallbin_dir(env):
-	env["BOOTALL_BIN"] = join(frameworks.get(''.join(env["PIOFRAMEWORK"]), ""))
-	if not env["BOOTALL_BIN"]:
-		raise Exception("Framework '%s' is invalid\r\n" % ''.join(env["PIOFRAMEWORK"]))
 
 def replace_rtl(env):
 	infile = "%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))
@@ -110,13 +109,6 @@ def replace_rtl(env):
                 with open(outfile, "wt") as fout:
                         for line in fin:
                                 fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
-
-prerequirement = [
-	get_bootallbin_dir(env),
-	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
-	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET"),
-	env.Append(PIOBUILDFILES = "%s/boot_all.o" % env["BUILD_DIR"])
-		]
 
 manipulating = [
 	env.VerboseAction("$NM $BUILD_DIR/firmware.elf | sort > $BUILD_DIR/firmware.nmap", "Generating $BUILD_DIR/firmware.nmap"),
@@ -142,19 +134,15 @@ uploading = [
 
 env.Append(
 	BUILDERS = dict(
-		Prerequirement = Builder(
-			action = env.VerboseAction(prerequirement, "Executing prerequirements")),
 		Manipulate = Builder(
 			action = env.VerboseAction(manipulating, "Manipulating images")),
 		)
 )
 
-prerequirement_b = env.Prerequirement("$BUILD_DIR/boot_all.o", env["BOOTALL_BIN"])
 program_b = env.BuildProgram()
-manipulate_images_b = env.Manipulate("$BUILD_DIR/image2_all_ota1.bin", [program_b, prerequirement_b])
+manipulate_images_b = env.Manipulate("$BUILD_DIR/image2_all_ota1.bin", [program_b])
 upload = env.Alias("upload", manipulate_images_b, uploading)
 AlwaysBuild(upload)
+
 Default([manipulate_images_b])
-
-
 

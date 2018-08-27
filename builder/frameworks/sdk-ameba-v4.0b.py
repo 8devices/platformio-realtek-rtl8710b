@@ -18,6 +18,7 @@ DEBUG_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gcc_utility"
 env.Append(
 	CPPPATH = [
 		env.subst("$PROJECTINCLUDE_DIR"),
+		FRAMEWORK_DIR + "/project/realtek_amebaz_va0_example/inc",
 		FRAMEWORK_DIR + "/component/os/freertos",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/include",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/GCC/ARM_CM4F",
@@ -257,7 +258,6 @@ sources = [
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/uart_socket.c>",
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/webserver.c>",
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/xml.c>",
-
 	]
 
 lwip_sources = list("")
@@ -330,9 +330,17 @@ else:
 	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_5.c>"]
 sources = sources + freertos_sources
 
+env["BOOTALL_BIN"] = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/image/boot_all.bin"
+prerequirement = [
+	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
+	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET")
+		]
+env.Append(BUILDERS = dict(Prerequirement = Builder(action = env.VerboseAction(prerequirement, "Generating boot_all.o"))))
+prerequirement_b = env.Prerequirement("$BUILD_DIR/boot_all.o", env["BOOTALL_BIN"]) 
 
 libs = []
-libs.append(env.BuildLibrary(
-    join("$BUILD_DIR", "SDK"), FRAMEWORK_DIR, sources
-))
+libs.append(env.BuildLibrary(join("$BUILD_DIR", "SDK"), FRAMEWORK_DIR, sources))
+libs.append(env.StaticLibrary(join("$BUILD_DIR", "boot_all"), prerequirement_b))
 env.Prepend(LIBS=libs)
+
+
