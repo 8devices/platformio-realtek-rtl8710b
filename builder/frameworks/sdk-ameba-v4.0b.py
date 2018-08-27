@@ -18,6 +18,7 @@ DEBUG_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gcc_utility"
 env.Append(
 	CPPPATH = [
 		env.subst("$PROJECTINCLUDE_DIR"),
+		FRAMEWORK_DIR + "/project/realtek_amebaz_va0_example/inc",
 		FRAMEWORK_DIR + "/component/os/freertos",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/include",
 		FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/GCC/ARM_CM4F",
