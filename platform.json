@@ -30,6 +30,10 @@
       "type": "framework",
       "optional": true,
       "version": "GIT_LINK"
+     },
+    "toolchain-realtek": {
+      "type": "toolchain",
+      "version": ">=1.0.0"
      }
    }
 }
