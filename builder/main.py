@@ -1,6 +1,7 @@
 import sys
 import os
-from os.path import basename, join
+import re
+from os.path import basename, join, getsize
 from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, DefaultEnvironment)
 from platformio import util
 
@@ -8,23 +9,24 @@ env = DefaultEnvironment()
 
 platform = env.PioPlatform()
 env["PLATFORM_DIR"] = platform.get_dir()
-TOOLCHAIN_DIR = platform.get_package_dir("toolchain-realtek")
-GCC_TOOLCHAIN = TOOLCHAIN_DIR + "/arm-none-eabi-gcc/4_8-2014q3/bin/"
+TOOLCHAIN_DIR = platform.get_package_dir("toolchain-gccarmnoneeabi")
+GCC_TOOLCHAIN = join(TOOLCHAIN_DIR, "bin")
 env["BOOTALL_BIN"] = ""
 
 env.Replace(
+	#SHELL = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
 
-	AR = GCC_TOOLCHAIN + "arm-none-eabi-ar",
-	CC = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
-	CXX = GCC_TOOLCHAIN + "arm-none-eabi-g++",
-	AS = GCC_TOOLCHAIN + "arm-none-eabi-as",
-	NM = GCC_TOOLCHAIN + "arm-none-eabi-nm",
-	LINK = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
-	LD = GCC_TOOLCHAIN + "arm-none-eabi-gcc",
-	GDB = GCC_TOOLCHAIN + "arm-none-eabi-gdb",
-	OBJCOPY = GCC_TOOLCHAIN + "arm-none-eabi-objcopy",
-	OBJDUMP = GCC_TOOLCHAIN + "arm-none-eabi-objdump",
-	SIZETOOL = GCC_TOOLCHAIN + "arm-none-eabi-size",
+	AR = join(GCC_TOOLCHAIN, "arm-none-eabi-ar.exe"),
+	CC = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
+	CXX = join(GCC_TOOLCHAIN, "arm-none-eabi-g++.exe"),
+	AS = join(GCC_TOOLCHAIN, "arm-none-eabi-as.exe"),
+	NM = join(GCC_TOOLCHAIN, "arm-none-eabi-nm.exe"),
+	LINK = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
+	LD = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
+	GDB = join(GCC_TOOLCHAIN, "arm-none-eabi-gdb.exe"),
+	OBJCOPY = join(GCC_TOOLCHAIN, "arm-none-eabi-objcopy.exe"),
+	OBJDUMP = join(GCC_TOOLCHAIN, "arm-none-eabi-objdump.exe"),
+	SIZETOOL = join(GCC_TOOLCHAIN, "arm-none-eabi-size.exe"),
 
 #	BOARD_CONFIG?
 	CCFLAGS = [
@@ -73,7 +75,7 @@ env.Replace(
 		"-g",
 		"--specs=nano.specs",
 		"-nostartfiles",
-		"-Wl,-Map=" + "$BUILD_DIR" + "/application.map",
+		"-Wl,-Map=" + join("$BUILD_DIR", "application.map"),
 		"-Os",
 		"-Wl,--gc-sections",
 		"-Wl,--cref",
@@ -96,39 +98,61 @@ env.Replace(
 if env.get("PROGNAME", "program") == "program":
     env.Replace(PROGNAME="firmware")
 
+def get_addr(string, file):
+#	if not os.path.exists(os.path.dirname(file)):
+#		try:
+#			os.makedirs(os.path.dirname(file))
+#		except OSError as exc:
+#			if exc.errno != errno.EEXIST:
+#				raise
+	res = ""
+	with open(file, "a+") as fin:
+		for line in fin:
+			if re.search(string, line):
+				res = line.split(" ")[0]
+	return res
+	
 def replace_rtl(env):
-	infile = "%s/scripts/openocd/%s/rtl_gdb_flash_write.txt" % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))
-	outfile = "%s/rtl_gdb_flash_write.txt" % (env.subst(env["BUILD_DIR"]))
+	infile = join(env["PLATFORM_DIR"], "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "rtl_gdb_flash_write.txt")
+	outfile = join(env.subst(env["BUILD_DIR"]), "rtl_gdb_flash_write.txt")
 	if not os.path.exists(os.path.dirname(outfile)):
 		try:
 			os.makedirs(os.path.dirname(outfile))
 		except OSError as exc:
 			if exc.errno != errno.EEXIST:
 				raise
-        with open(infile, "rt") as fin:
-                with open(outfile, "wt") as fout:
-                        for line in fin:
-                                fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', '%s/scripts/openocd/%s' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]))))
-
+	with open(infile, "rt") as fin:
+		with open(outfile, "wt") as fout:
+			for line in fin:
+				fout.write(line.replace('BUILD_DIR', '%s' % env.subst(env["BUILD_DIR"])).replace('SCRIPTS_DIR', join(env["PLATFORM_DIR"], "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]))))
+								
+def get_size(file):
+	print file
+	size = getsize("C:\\Users\\tautvydas\\.platformio\\packages\\framework-sdk-ameba-v4.0b-gcc\\component\\soc\\realtek\\8711b\\misc\\bsp\\image\\boot_all.bin")
+	print size
+	print env["BOOTALL_BIN"]
+#def decimal_to_hex():
+				
 manipulating = [
-	env.VerboseAction("$NM $BUILD_DIR/firmware.elf | sort > $BUILD_DIR/firmware.nmap", "Generating $BUILD_DIR/firmware.nmap"),
-	env.VerboseAction("$OBJCOPY -j .ram_image2.entry -j .ram_image2.data -j .ram_image2.bss -j .ram_image2.skb.bss -j .ram_heap.data -Obinary $BUILD_DIR/firmware.elf $BUILD_DIR/ram_2.r.bin", "Generating $BUILD_DIR/ram_2.r.bin"),
-	env.VerboseAction("$OBJCOPY -j .xip_image2.text -Obinary $BUILD_DIR/firmware.elf $BUILD_DIR/xip_image2.bin", "Generating $BUILD_DIR/xip_image2.bin"),
+	env.VerboseAction("$NM " + join("$BUILD_DIR", "firmware.elf") + " | sort > " + join("$BUILD_DIR", "firmware.nmap"), "Generating " + join("$BUILD_DIR", "firmware.nmap")),
+	env.VerboseAction("$OBJCOPY -j .ram_image2.entry -j .ram_image2.data -j .ram_image2.bss -j .ram_image2.skb.bss -j .ram_heap.data -Obinary " + join("$BUILD_DIR", "firmware.elf") + " " + join("$BUILD_DIR", "ram_2.r.bin"), "Generating " + join("$BUILD_DIR", "ram_2.r.bin")),
+	env.VerboseAction("$OBJCOPY -j .xip_image2.text -Obinary " + join("$BUILD_DIR", "firmware.elf") + " " + join("$BUILD_DIR", "xip_image2.bin"), "Generating " + join("$BUILD_DIR", "xip_image2.bin")),
 	env.VerboseAction("chmod +rx $PICK $CHKSUM $PAD $OTA", "."),
-	env.VerboseAction("$PICK 0x`grep __ram_image2_text_start__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` 0x`grep __ram_image2_text_end__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` $BUILD_DIR/ram_2.r.bin $BUILD_DIR/ram_2.bin raw", "."),
-	env.VerboseAction("$PICK 0x`grep __ram_image2_text_start__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` 0x`grep __ram_image2_text_end__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` $BUILD_DIR/ram_2.bin $BUILD_DIR/ram_2.p.bin", "."),
-	env.VerboseAction("$PICK 0x`grep __xip_image2_start__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` 0x`grep __xip_image2_start__ $BUILD_DIR/firmware.nmap | gawk '{print $$1}'` $BUILD_DIR/xip_image2.bin $BUILD_DIR/xip_image2.p.bin", "."),
-	env.VerboseAction("cat $BUILD_DIR/xip_image2.p.bin > $BUILD_DIR/image2_all_ota1.bin", "Generating $TARGET"),
-	env.VerboseAction("cat $BUILD_DIR/ram_2.p.bin >> $BUILD_DIR/image2_all_ota1.bin", "."),
+	env.VerboseAction("$PICK 0x%s 0x%s " % (get_addr("__ram_image2_text_start__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap")), get_addr("__ram_image2_text_end__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap"))) + join("$BUILD_DIR", "ram_2.r.bin") + " " + join("$BUILD_DIR", "ram_2.bin") + " raw", "."),
+	env.VerboseAction("$PICK 0x%s 0x%s " % (get_addr("__ram_image2_text_start__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap")), get_addr("__ram_image2_text_end__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap"))) + join("$BUILD_DIR", "ram_2.bin") + " " + join("$BUILD_DIR", "ram_2.p.bin"), "."),
+	env.VerboseAction("$PICK 0x%s 0x%s " % (get_addr("__xip_image2_start__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap")), get_addr("__xip_image2_start__", join(env.subst(env["BUILD_DIR"]), "firmware.nmap"))) + join("$BUILD_DIR", "xip_image2.bin") + " " + join("$BUILD_DIR", "xip_image2.p.bin"), "."),	
+	env.VerboseAction("cat " + join("$BUILD_DIR", "xip_image2.p.bin") + " > " + join("$BUILD_DIR", "image2_all_ota1.bin"), "Generating $TARGET"),
+	env.VerboseAction("cat " + join("$BUILD_DIR", "ram_2.p.bin") + " >> " + join("$BUILD_DIR", "image2_all_ota1.bin"), "."),
 	]
 
 uploading = [
+	get_size(env["BOOTALL_BIN"]),
 	env.VerboseAction('echo -n "set $$" > %s/BTAsize.gdb' % (env["BUILD_DIR"]), 'Uploading binary'),
 	env.VerboseAction('echo "BOOTALLFILESize = 0x$$(echo "obase=16; $$(stat -c %%s %s)"|bc)" >> %s/BTAsize.gdb' % (env["BOOTALL_BIN"], env["BUILD_DIR"]), '.'),
 	env.VerboseAction('echo -n "set $$" > %s/fwsize.gdb' % (env["BUILD_DIR"]), '.'),
 	env.VerboseAction('echo "RamFileSize = 0x$$(echo "obase=16; $$(stat -c %%s $BUILD_DIR/image2_all_ota1.bin)"|bc)" >> %s/fwsize.gdb' % (env["BUILD_DIR"]), '.'),
 	replace_rtl(env),
-	env.VerboseAction('cp %s $BUILD_DIR/boot_all.bin' % env["BOOTALL_BIN"], '.'),
+	env.VerboseAction("cp %s " % env["BOOTALL_BIN"] + join("$BUILD_DIR", "boot_all.bin"), '.'),
 	env.VerboseAction('openocd -f interface/cmsis-dap.cfg -f %s/scripts/openocd/%s/amebaz.cfg -c "init" > /dev/null 2>&1 &  export ocdpid=$! ; arm-none-eabi-gdb -batch --init-eval-command="dir %s/scripts/openocd/%s" -x %s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % (env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["PLATFORM_DIR"], ''.join(env["PIOFRAMEWORK"]), env["BUILD_DIR"]), '.'),
 	]
 
@@ -139,10 +163,13 @@ env.Append(
 		)
 )
 
+lala_b = env.VerboseAction("ls", "Testing")
+AlwaysBuild(lala_b)
 program_b = env.BuildProgram()
 manipulate_images_b = env.Manipulate("$BUILD_DIR/image2_all_ota1.bin", [program_b])
 upload = env.Alias("upload", manipulate_images_b, uploading)
 AlwaysBuild(upload)
 
-Default([manipulate_images_b])
+Default(lala_b)
+#Default([manipulate_images_b])
 

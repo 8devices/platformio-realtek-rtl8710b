@@ -10,10 +10,10 @@ platform = env.PioPlatform()
 
 FRAMEWORK_DIR = platform.get_package_dir("framework-sdk-ameba-v4.0b-gcc")
 assert isdir(FRAMEWORK_DIR)
-AMEBA_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/iar_utility/common/tools"
-FLASH_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8195a/misc/gcc_utility"
-FLASHDOWNLOAD_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gnu_utility/flash_download/image"
-DEBUG_TOOLDIR = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/gcc_utility"
+AMEBA_TOOLDIR = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "iar_utility", "common", "tools")
+FLASH_TOOLDIR = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8195a", "misc", "gcc_utility")
+FLASHDOWNLOAD_TOOLDIR = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "gnu_utility", "flash_download", "image")
+DEBUG_TOOLDIR = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "gcc_utility")
 
 env.Append(
 	CPPPATH = [
@@ -93,10 +93,10 @@ env.Replace(
 		env["PLATFORM_DIR"] + "/scripts/ld/sdk-ameba-v4.0b/rlx8711B-symbol-v02-img2_xip1.ld",
 			],
 
-	PICK = AMEBA_TOOLDIR + "/pick",
-        PAD  = AMEBA_TOOLDIR + "/padding",
-        CHKSUM = AMEBA_TOOLDIR + "/checksum",
-        OTA = AMEBA_TOOLDIR + "/ota",
+	PICK = join(AMEBA_TOOLDIR, "pick.exe"),
+        PAD  = join(AMEBA_TOOLDIR, "padding.exe"),
+        CHKSUM = join(AMEBA_TOOLDIR, "checksum.exe"),
+        OTA = join(AMEBA_TOOLDIR, "ota.exe"),
 )
 
 sources = [
@@ -330,7 +330,8 @@ else:
 	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_5.c>"]
 sources = sources + freertos_sources
 
-env["BOOTALL_BIN"] = FRAMEWORK_DIR + "/component/soc/realtek/8711b/misc/bsp/image/boot_all.bin"
+env["BOOTALL_BIN"] = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "bsp", "image", "boot_all.bin")
+print env["BOOTALL_BIN"]
 prerequirement = [
 	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
 	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET")
