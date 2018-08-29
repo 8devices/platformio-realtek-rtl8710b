@@ -330,8 +330,10 @@ else:
 	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_5.c>"]
 sources = sources + freertos_sources
 
-env["BOOTALL_BIN"] = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "bsp", "image", "boot_all.bin")
-print env["BOOTALL_BIN"]
+env.Replace(
+	BOOTALL_BIN = join(FRAMEWORK_DIR, "component", "soc", "realtek", "8711b", "misc", "bsp", "image", "boot_all.bin")
+)
+
 prerequirement = [
 	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
 	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET")
