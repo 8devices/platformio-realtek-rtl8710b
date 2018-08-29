@@ -335,11 +335,10 @@ env.Replace(
 )
 
 prerequirement = [
-	env.VerboseAction("chmod 777 %s" % env["BOOTALL_BIN"], "Executing prerequirements"),
-	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm %s $BUILD_DIR/boot_all.o" % env["BOOTALL_BIN"], "Generating $TARGET")
+	env.VerboseAction("$OBJCOPY -I binary -O elf32-littlearm -B arm $BOOTALL_BIN " + join(env.subst(env["BUILD_DIR"]), "boot_all.o"), "Generating $TARGET")
 		]
 env.Append(BUILDERS = dict(Prerequirement = Builder(action = env.VerboseAction(prerequirement, "Generating boot_all.o"))))
-prerequirement_b = env.Prerequirement("$BUILD_DIR/boot_all.o", env["BOOTALL_BIN"]) 
+prerequirement_b = env.Prerequirement(join(env.subst(env["BUILD_DIR"]), "boot_all.o"), env["BOOTALL_BIN"]) 
 
 libs = []
 libs.append(env.BuildLibrary(join("$BUILD_DIR", "SDK"), FRAMEWORK_DIR, sources))
