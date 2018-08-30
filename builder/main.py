@@ -6,24 +6,32 @@ from SCons.Action import FunctionAction
 from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, DefaultEnvironment)
 from platformio import util
 
-env = DefaultEnvironment()
+EXECUTABLE_SUFFIX = ""
+PATH_SEPARATOR = "/"
+COPY = "cp"
+if os.name == "nt":
+	EXECUTABLE_SUFFIX = r".exe"
+	PATH_SEPARATOR = r"\\"
+	COPY = "copy"
 
+env = DefaultEnvironment()
 platform = env.PioPlatform()
-TOOLCHAIN_DIR = platform.get_package_dir("toolchain-gccarmnoneeabi")
-GCC_TOOLCHAIN = join(TOOLCHAIN_DIR, "bin")
+OPENOCD_TOOL = join(platform.get_package_dir("tool-openocd"), "bin")
+GCC_TOOLCHAIN = join(platform.get_package_dir("toolchain-gccarmnoneeabi"), "bin")
 
 env.Replace(
-	AR = join(GCC_TOOLCHAIN, "arm-none-eabi-ar.exe"),
-	CC = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
-	CXX = join(GCC_TOOLCHAIN, "arm-none-eabi-g++.exe"),
-	AS = join(GCC_TOOLCHAIN, "arm-none-eabi-as.exe"),
-	NM = join(GCC_TOOLCHAIN, "arm-none-eabi-nm.exe"),
-	LINK = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
-	LD = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc.exe"),
-	GDB = join(GCC_TOOLCHAIN, "arm-none-eabi-gdb.exe"),
-	OBJCOPY = join(GCC_TOOLCHAIN, "arm-none-eabi-objcopy.exe"),
-	OBJDUMP = join(GCC_TOOLCHAIN, "arm-none-eabi-objdump.exe"),
-	SIZETOOL = join(GCC_TOOLCHAIN, "arm-none-eabi-size.exe"),
+	AR = join(GCC_TOOLCHAIN, "arm-none-eabi-ar" + EXECUTABLE_SUFFIX),
+	CC = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	CXX = join(GCC_TOOLCHAIN, "arm-none-eabi-g++" + EXECUTABLE_SUFFIX),
+	AS = join(GCC_TOOLCHAIN, "arm-none-eabi-as" + EXECUTABLE_SUFFIX),
+	NM = join(GCC_TOOLCHAIN, "arm-none-eabi-nm" + EXECUTABLE_SUFFIX),
+	LINK = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	LD = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	GDB = join(GCC_TOOLCHAIN, "arm-none-eabi-gdb" + EXECUTABLE_SUFFIX),
+	OBJCOPY = join(GCC_TOOLCHAIN, "arm-none-eabi-objcopy" + EXECUTABLE_SUFFIX),
+	OBJDUMP = join(GCC_TOOLCHAIN, "arm-none-eabi-objdump" + EXECUTABLE_SUFFIX),
+	SIZETOOL = join(GCC_TOOLCHAIN, "arm-none-eabi-size" + EXECUTABLE_SUFFIX),
+	OPENOCD = join(OPENOCD_TOOL, "openocd" + EXECUTABLE_SUFFIX),
 
 #	BOARD_CONFIG?
 	CCFLAGS = [
@@ -83,10 +91,16 @@ env.Replace(
 		"-Wl,-wrap,realloc",
 	],
 
-	SIZEPROGREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.text|\.ram_image2\.data|\.ram_heap\.data|\.xip_image2\.text|)\s+([0-9]+).*",
-	SIZEDATAREGEXP=r"^(?:\.ram_image2\.entry|\.ram_image2\.data|\.ram_heap\.data|\.ram_image2\.bss|\.ram_image2\.skb\.bss|)\s+([0-9]+).*",
-	SIZECHECKCMD='$SIZETOOL -A -d $SOURCES',
-	SIZEPRINTCMD='$SIZETOOL -B -d $SOURCES',
+	CP = COPY,
+	
+	SIZEPROGREGEXP = r"^(?:\.ram_image2\.entry|\.ram_image2\.text|\.ram_image2\.data|\.ram_heap\.data|\.xip_image2\.text|)\s+([0-9]+).*",
+	SIZEDATAREGEXP = r"^(?:\.ram_image2\.entry|\.ram_image2\.data|\.ram_heap\.data|\.ram_image2\.bss|\.ram_image2\.skb\.bss|)\s+([0-9]+).*",
+	SIZECHECKCMD = '$SIZETOOL -A -d $SOURCES',
+	SIZEPRINTCMD = '$SIZETOOL -B -d $SOURCES',
+	
+	OPENOCDCMD = "START /B $OPENOCD -s C:\\Users\\tautvydas\\.platformio\\packages\\tool-openocd\\scripts -f interface\\cmsis-dap.cfg -f %s -c \"init\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "amebaz.cfg"),
+	GDBCMD = "$GDB -q -batch --init-eval-command=\"dir %s\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"])) + " -x $BUILD_DIR\\rtl_gdb_flash_write.txt",
+	UPLOADCMD ="$OPENOCDCMD & $GDBCMD & (for /f \"TOKENS=1,2,*\" %%a in ('tasklist /fi \"IMAGENAME eq openocd%s\"') do (Taskkill /f /pid %%b)) > nul 2>&1" % EXECUTABLE_SUFFIX,
 
 	PROGSUFFIX = ".elf",
 	
@@ -95,7 +109,6 @@ env.Replace(
 
 if env.get("PROGNAME", "program") == "program":
     env.Replace(PROGNAME="firmware")
-
 	
 def pick(target, source, env):
 	section = [
@@ -123,11 +136,11 @@ def pick(target, source, env):
 
 def replace_rtl(**kw):
 	infile = join(env.subst("$PLATFORM_DIR"), "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "rtl_gdb_flash_write.txt")
-	outfile = join(env.subst("$BUILD_DIR"), "rtl_gdb_flash_write.txt")
+	outfile = join(env.subst("$BUILD_DIR/"), "rtl_gdb_flash_write.txt")
 	with open(infile, "rt") as fin:
 		with open(outfile, "wt") as fout:
 			for line in fin:
-				fout.write(line.replace('BUILD_DIR', env.subst("$BUILD_DIR")).replace('SCRIPTS_DIR', join(env.subst("$PLATFORM_DIR"), "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]))))
+				fout.write(line.replace('BUILD_DIR/', env.subst("$BUILD_DIR").replace("\\", "\\\\") + PATH_SEPARATOR).replace('SCRIPTS_DIR/', join(env.subst("$PLATFORM_DIR"), "scripts", "openocd", ''.join(env["PIOFRAMEWORK"])).replace("\\", "\\\\") + PATH_SEPARATOR))
 
 def BTAsize_create(**kw):
 	bin_size = getsize(env["BOOTALL_BIN"])
@@ -158,9 +171,8 @@ uploading = [
 	env.VerboseAction(BTAsize_create, "Generating " + join(env.subst("$BUILD_DIR"), "BTAsize.gdb")),
 	env.VerboseAction(fwsize_create, "Generating " + join(env.subst("$BUILD_DIR"), "fwsize.gdb")),
 	env.VerboseAction(replace_rtl, "Generating " + join(env.subst("$BUILD_DIR"), "rtl_gdb_flash_write.txt")),
-	env.VerboseAction("cp $BOOTALL_BIN " + join(env.subst("$BUILD_DIR"), "boot_all.bin"), '.'),
-#	env.VerboseAction("openocd -f " + join("interface", "cmsis-dap.cfg") + " -f " + join("$PLATFORM_DIR", "scripts", "openocd", "%s" % ''.join(env["PIOFRAMEWORK"]), "amebaz.cfg") + " -c 'init' > /dev/null 2>&1 &  export ocdpid=$! ; $GDB -batch --init-eval-command="dir %s/scripts/openocd/%s" -x %s/rtl_gdb_flash_write.txt ; kill -9 $$ocdpid' % ("", ''.join(env["PIOFRAMEWORK"]), "$PLATFORM_DIR", ''.join(env["PIOFRAMEWORK"]), env["BUILD_DIR"]), 'Launching openocd'),
-#	env.VerboseAction('openocd -f ' + join('interface', 'cmsis-dap.cfg') + ' -s C:\\openocd2\\share\\openocd\\scripts -f ' + join('$PLATFORM_DIR', 'scripts', 'openocd', ''.join(env['PIOFRAMEWORK']), 'amebaz.cfg') + ' -c "init" & $GDB -batch --init-eval-command="dir ' + join('$PLATFORM_DIR', 'scripts', 'openocd', ''.join(env["PIOFRAMEWORK"])) + '" -x ' + join(env.subst("$BUILD_DIR"), 'rtl_gdb_flash_write.txt'), 'Launching openocd'),
+	env.VerboseAction("$CP $BOOTALL_BIN " + join(env.subst("$BUILD_DIR"), "boot_all.bin"), '.'),
+	env.VerboseAction(env.subst("$UPLOADCMD").replace("\\", "\\\\"), "Uploading binary to flash"),
 	]
 
 env.Append(

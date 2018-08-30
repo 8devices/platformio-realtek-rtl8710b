@@ -39,6 +39,10 @@
     "toolchain-gccarmnoneeabi": {
       "type": "toolchain",
       "version": "1.40804.0"
+     },
+    "tool-openocd": {
+      "type": "toolchain",
+	  "version": "~1.900.0"
      }
    }
 }

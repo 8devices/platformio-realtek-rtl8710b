@@ -1,9 +1,11 @@
-
+import os
 from os.path import isdir, join
-
 from SCons.Script import DefaultEnvironment
-
 from platformio import util
+
+EXECUTABLE_SUFFIX = ""
+if os.name == "nt":
+	EXECUTABLE_SUFFIX = r".exe"
 
 env = DefaultEnvironment()
 platform = env.PioPlatform()
@@ -93,10 +95,10 @@ env.Replace(
 		env["PLATFORM_DIR"] + "/scripts/ld/sdk-ameba-v4.0b/rlx8711B-symbol-v02-img2_xip1.ld",
 			],
 
-	PICK = join(AMEBA_TOOLDIR, "pick.exe"),
-        PAD  = join(AMEBA_TOOLDIR, "padding.exe"),
-        CHKSUM = join(AMEBA_TOOLDIR, "checksum.exe"),
-        OTA = join(AMEBA_TOOLDIR, "ota.exe"),
+	PICK = join(AMEBA_TOOLDIR, "pick" + EXECUTABLE_SUFFIX),
+	PAD  = join(AMEBA_TOOLDIR, "padding" + EXECUTABLE_SUFFIX),
+	CHKSUM = join(AMEBA_TOOLDIR, "checksum" + EXECUTABLE_SUFFIX),
+	OTA = join(AMEBA_TOOLDIR, "ota" + EXECUTABLE_SUFFIX),
 )
 
 sources = [
@@ -273,10 +275,9 @@ else:
         		FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/include",
         		FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/include/lwip",
         		FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/include/ipv4",
-        		FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/port/realtek",
+        		join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "port", "realtek"),
 			]
 		)
-#	CPPPATH
 	lwip_sources = [
 	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/api_lib.c>",
 	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/api_msg.c>",
