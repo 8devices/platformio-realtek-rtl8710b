@@ -9,7 +9,7 @@
     "url": "git_link"
   },
   "version": "1.0.0",
-  "packageRepositories": ["https://dl.bintray.com/taubel/test_manifest/bintray_test_manifest.json","https://dl.bintray.com/platformio/dl-packages/manifest.json"],
+  "packageRepositories": ["https://dl.bintray.com/platformio/dl-packages/manifest.json"],
   "frameworks": {
     "sdk-ameba-v4.0b": {
       "package": "framework-sdk-ameba-v4.0b-gcc",
@@ -30,11 +30,6 @@
       "type": "framework",
       "optional": true,
       "version": "GIT_LINK"
-     },
-    "toolchain-realtek": {
-      "optional": "true",
-      "type": "toolchain",
-      "version": ">=1.0.0"
      },
     "toolchain-gccarmnoneeabi": {
       "type": "toolchain",
