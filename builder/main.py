@@ -6,18 +6,27 @@ from SCons.Action import FunctionAction
 from SCons.Script import (COMMAND_LINE_TARGETS, AlwaysBuild, Builder, Default, DefaultEnvironment)
 from platformio import util
 
-EXECUTABLE_SUFFIX = ""
-PATH_SEPARATOR = "/"
-COPY = "cp"
+env = DefaultEnvironment()
+platform = env.PioPlatform()
+OPENOCD_DIR = platform.get_package_dir("tool-openocd")
+GCC_TOOLCHAIN = join(platform.get_package_dir("toolchain-gccarmnoneeabi"), "bin")
+
 if os.name == "nt":
 	EXECUTABLE_SUFFIX = r".exe"
 	PATH_SEPARATOR = r"\\"
 	COPY = "copy"
-
-env = DefaultEnvironment()
-platform = env.PioPlatform()
-OPENOCD_TOOL = join(platform.get_package_dir("tool-openocd"), "bin")
-GCC_TOOLCHAIN = join(platform.get_package_dir("toolchain-gccarmnoneeabi"), "bin")
+	env["OPENOCDCMD"] = "START /B $OPENOCD -s %s\\scripts -f interface\\cmsis-dap.cfg -f %s -c \"init\"" % (OPENOCD_DIR , join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "amebaz.cfg"))
+	env["GDBCMD"] = "$GDB -q -batch --init-eval-command=\"dir %s\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"])) + " -x $BUILD_DIR\\rtl_gdb_flash_write.txt"
+	env["UPLOADCMD"] ="$OPENOCDCMD & $GDBCMD"
+	env["OPENOCD_KILL"] = "& (for /f \"TOKENS=1,2,*\" %%a in ('tasklist /fi \"IMAGENAME eq openocd\.exe\"') do (Taskkill /f /pid %%b)) > nul 2>&1"
+else:
+	EXECUTABLE_SUFFIX = ""
+	PATH_SEPARATOR = "/"
+	COPY = "cp"
+	env["OPENOCDCMD"] = "$OPENOCD -s %s/scripts -f interface/cmsis-dap.cfg -f $PLATFORM_DIR/scripts/openocd/%s/amebaz.cfg -c \"init\" > /dev/null 2>&1 & export ocdpid=$!" % (OPENOCD_DIR, ''.join(env["PIOFRAMEWORK"]))
+	env["GDBCMD"] = "$GDB -batch --init-eval-command=\"dir $PLATFORM_DIR/scripts/openocd/%s\" -x $BUILD_DIR/rtl_gdb_flash_write.txt" % ''.join(env["PIOFRAMEWORK"])
+	env["UPLOADCMD"] ="$OPENOCDCMD ; $GDBCMD"
+	env["OPENOCD_KILL"] = " ; kill -9 $$ocdpid"
 
 env.Replace(
 	AR = join(GCC_TOOLCHAIN, "arm-none-eabi-ar" + EXECUTABLE_SUFFIX),
@@ -31,7 +40,7 @@ env.Replace(
 	OBJCOPY = join(GCC_TOOLCHAIN, "arm-none-eabi-objcopy" + EXECUTABLE_SUFFIX),
 	OBJDUMP = join(GCC_TOOLCHAIN, "arm-none-eabi-objdump" + EXECUTABLE_SUFFIX),
 	SIZETOOL = join(GCC_TOOLCHAIN, "arm-none-eabi-size" + EXECUTABLE_SUFFIX),
-	OPENOCD = join(OPENOCD_TOOL, "openocd" + EXECUTABLE_SUFFIX),
+	OPENOCD = join(OPENOCD_DIR, "bin", "openocd" + EXECUTABLE_SUFFIX),
 
 #	BOARD_CONFIG?
 	CCFLAGS = [
@@ -98,10 +107,6 @@ env.Replace(
 	SIZECHECKCMD = '$SIZETOOL -A -d $SOURCES',
 	SIZEPRINTCMD = '$SIZETOOL -B -d $SOURCES',
 	
-	OPENOCDCMD = "START /B $OPENOCD -s C:\\Users\\tautvydas\\.platformio\\packages\\tool-openocd\\scripts -f interface\\cmsis-dap.cfg -f %s -c \"init\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "amebaz.cfg"),
-	GDBCMD = "$GDB -q -batch --init-eval-command=\"dir %s\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"])) + " -x $BUILD_DIR\\rtl_gdb_flash_write.txt",
-	UPLOADCMD ="$OPENOCDCMD & $GDBCMD & (for /f \"TOKENS=1,2,*\" %%a in ('tasklist /fi \"IMAGENAME eq openocd%s\"') do (Taskkill /f /pid %%b)) > nul 2>&1" % EXECUTABLE_SUFFIX,
-
 	PROGSUFFIX = ".elf",
 	
 	PLATFORM_DIR = platform.get_dir(),
@@ -172,7 +177,7 @@ uploading = [
 	env.VerboseAction(fwsize_create, "Generating " + join(env.subst("$BUILD_DIR"), "fwsize.gdb")),
 	env.VerboseAction(replace_rtl, "Generating " + join(env.subst("$BUILD_DIR"), "rtl_gdb_flash_write.txt")),
 	env.VerboseAction("$CP $BOOTALL_BIN " + join(env.subst("$BUILD_DIR"), "boot_all.bin"), '.'),
-	env.VerboseAction(env.subst("$UPLOADCMD").replace("\\", "\\\\"), "Uploading binary to flash"),
+	env.VerboseAction(env.subst("$UPLOADCMD").replace("\\", "\\\\") + env["OPENOCD_KILL"], "Uploading binary to flash"),
 	]
 
 env.Append(

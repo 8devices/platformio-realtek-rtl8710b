@@ -42,7 +42,7 @@
      },
     "tool-openocd": {
       "type": "toolchain",
-	  "version": "~1.900.0"
+      "version": "~1.900.0"
      }
    }
 }
