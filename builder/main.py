@@ -18,7 +18,7 @@ if os.name == "nt":
 	env["OPENOCDCMD"] = "START /B $OPENOCD -s %s\\scripts -f interface\\cmsis-dap.cfg -f %s -c \"init\"" % (OPENOCD_DIR , join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"]), "amebaz.cfg"))
 	env["GDBCMD"] = "$GDB -q -batch --init-eval-command=\"dir %s\"" % join("$PLATFORM_DIR", "scripts", "openocd", ''.join(env["PIOFRAMEWORK"])) + " -x $BUILD_DIR\\rtl_gdb_flash_write.txt"
 	env["UPLOADCMD"] ="$OPENOCDCMD & $GDBCMD"
-	env["OPENOCD_KILL"] = "& (for /f \"TOKENS=1,2,*\" %%a in ('tasklist /fi \"IMAGENAME eq openocd\.exe\"') do (Taskkill /f /pid %%b)) > nul 2>&1"
+	env["OPENOCD_KILL"] = " & (for /f \"TOKENS=1,2,*\" %a in ('tasklist /fi \"IMAGENAME eq openocd.exe\"') do (Taskkill /f /pid %b)) > nul 2>&1"
 else:
 	EXECUTABLE_SUFFIX = ""
 	PATH_SEPARATOR = "/"
