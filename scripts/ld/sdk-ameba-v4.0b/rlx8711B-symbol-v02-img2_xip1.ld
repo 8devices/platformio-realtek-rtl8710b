@@ -2,6 +2,8 @@
 
 ENTRY(Reset_Handler)
 
+EXTERN(APP_Start)
+
 INCLUDE "export-rom_symbol_v01.txt"
 
 MEMORY
