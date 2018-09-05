@@ -2,8 +2,6 @@
 
 ENTRY(Reset_Handler)
 
-EXTERN(BOOT_Image2)
-
 INCLUDE "export-rom_symbol_v01.txt"
 
 MEMORY
