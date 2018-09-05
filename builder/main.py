@@ -92,7 +92,7 @@ env.Replace(
 		"-Os",
 		"-Wl,--gc-sections",
 		"-Wl,--cref",
-		"-Wl,--entry=Reset_Handler",
+		"-Wl,--entry=gImage2EntryFun0",
 		"-Wl,--no-enum-size-warning",
 		"-Wl,--no-wchar-size-warning",
 		"-Wl,-wrap,malloc",
