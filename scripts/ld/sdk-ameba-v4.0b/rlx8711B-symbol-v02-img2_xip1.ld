@@ -2,7 +2,7 @@
 
 ENTRY(Reset_Handler)
 
-EXTERN(APP_Start)
+EXTERN(BOOT_Image2)
 
 INCLUDE "export-rom_symbol_v01.txt"
 
