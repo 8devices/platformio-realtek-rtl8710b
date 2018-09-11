@@ -2,11 +2,11 @@
 
 PlatformIO developments system platform for realtek microcontrollers.
 
-# Requirements
+## Requirements
 
 PlatformIO core. Instructions can be found at: https://docs.platformio.org/en/latest/installation.html
 
-# Usage
+## Usage
 
 PlatformIO is well documented in their website at: https://docs.platformio.org/en/latest/index.html. The platform in this repository is custom, not yet confirmed by the PlatformIO developers, so it won't be found in official PlatformIO repositories. Example of 'platformio.ini' configuration when using this platform:
 
@@ -17,10 +17,14 @@ PlatformIO is well documented in their website at: https://docs.platformio.org/e
 
 All necessary frameworks and tools will be automatically downloaded once you start developing your applications.
 
-# Framework
+## Framework
 
 The platform uses 'SDK Ameba v4.0b' provided by the developer, realtek, in their website, and can be downloaded at: https://www.amebaiot.com/en/ameba-sdk-download/.
 
-# DAP firmware
+## DAP firmware
 
 DAP firmware for the CMSIS-DAP interface located on realtek boards can be downloaded at: https://www.amebaiot.com/en/change-dap-firmware/. Instructions on installing DAP firmware can be found at the same link or at the realtek documentation in thei framework.
+
+## License
+
+* Project code is provided under The MIT Licesne (MIT)
