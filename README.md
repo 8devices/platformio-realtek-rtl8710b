@@ -1,6 +1,6 @@
 # platformio-realtek-rtl8710b
 
-PlatformIO developments system platform for realtek microcontrollers.
+PlatformIO development system platform for realtek microcontrollers.
 
 ## Requirements
 
