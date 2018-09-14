@@ -23,7 +23,7 @@ The platform uses 'SDK Ameba v4.0b' provided by the developer, realtek, in their
 
 ## DAP firmware
 
-DAP firmware for the CMSIS-DAP interface located on realtek boards can be downloaded from the [MBED DAPLink project](https://github.com/ARMmbed/DAPLink/releases). Choose any of the archived binaries that after the version number contain the string 'lpc11u35'. Instructions on installing DAP firmware can be found at the [official realtek website](https://www.amebaiot.com/en/change-dap-firmware/.) or at the realtek documentation in their framework.
+DAP firmware for the CMSIS-DAP interface located on realtek boards can be downloaded from the [MBED DAPLink project](https://github.com/ARMmbed/DAPLink/releases). Choose any of the archived binaries that after the version number contain the string 'lpc11u35'. One of such binaries is located in the 'dap_firmware' folder. Instructions on installing DAP firmware can be found at the [official realtek website](https://www.amebaiot.com/en/change-dap-firmware/.) or at the realtek documentation in their framework.
 
 For linux users - if 'drag and drop' seems to fail to ugprade firmware, try:
 
