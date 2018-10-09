@@ -1,0 +1,1 @@
+This binary is a copy of one of the binaries provided by ARMmbed in their project DAPLink. The file is licensed under the apache license and all credit goes to the original creator. More information can be found in this link: https://github.com/ARMmbed/DAPLink/blob/master/LICENSE. 
