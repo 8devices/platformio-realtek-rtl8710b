@@ -85,9 +85,16 @@ env.Append(
 	],
 
 	LIBS=[
-		"_platform", "_wlan", "_wps", "_rtlstd", "_dct", "m", "c", "nosys", "_websocket", "_http", "_mdns"
+		"_platform", "_wps", "_rtlstd", "_dct", "m", "c", "nosys", "_websocket", "_http", "_mdns"
 	]
 )
+
+if "USE_MP" in env.Flatten(env["CPPDEFINES"]):
+    env.Append(
+            LIBS=["_wlan_mp"])
+else:
+    env.Append(
+            LIBS=["_wlan"])
 
 env.Replace(
 	LDSCRIPT_PATH = [
