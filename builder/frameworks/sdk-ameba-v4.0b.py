@@ -89,7 +89,7 @@ env.Append(
 	]
 )
 
-if "USE_MP" in env.Flatten(env["CPPDEFINES"]):
+if "PIO_FRAMEWORK_AMEBAZ_USE_MP" in env.Flatten(env["CPPDEFINES"]):
     env.Append(
             LIBS=["_wlan_mp"])
 else:
@@ -269,72 +269,69 @@ sources = [
 	]
 
 lwip_sources = list("")
+lwip_version = "1.4.1"
+for i, val in enumerate(env.Flatten(env["CPPDEFINES"])):
+    if val == "PIO_FRAMEWORK_AMEBAZ_LWIP":
+        lwip_version = str(env.Flatten(env["CPPDEFINES"])[i + 1])
+        break
 
-if "LWIP_CUSTOM" in env.Flatten(env["CPPDEFINES"]):
-	pass
-elif "LWIP_1_5" in env.Flatten(env["CPPDEFINES"]):
-	pass
-else:
+if lwip_version != "CUSTOM":
 	env.Append(
 		CPPPATH = [
-			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "port", "realtek", "freertos"),
-			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "src", "include"),
-			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "src", "include", "lwip"),
-			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "src", "include", "ipv4"),
-        		join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v1.4.1", "port", "realtek"),
+			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v" + lwip_version, "port", "realtek", "freertos"),
+			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v" + lwip_version, "src", "include"),
+			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v" + lwip_version, "src", "include", "lwip"),
+			join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v" + lwip_version, "src", "include", "ipv4"),
+        		join(FRAMEWORK_DIR, "component", "common", "network", "lwip", "lwip_v" + lwip_version, "port", "realtek"),
 			]
 		)
 	lwip_sources = [
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/api_lib.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/api_msg.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/err.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/netbuf.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/netdb.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/netifapi.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/sockets.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/api/tcpip.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/autoip.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/icmp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/igmp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/inet.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/inet_chksum.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/ip.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/ip_addr.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/ipv4/ip_frag.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/def.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/dhcp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/dns.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/init.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/lwip_timers.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/mem.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/memp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/netif.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/pbuf.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/raw.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/stats.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/sys.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/tcp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/tcp_in.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/tcp_out.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/core/udp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/src/netif/etharp.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/port/realtek/freertos/ethernetif.c>",
-	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v1.4.1/port/realtek/freertos/sys_arch.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/api_lib.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/api_msg.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/err.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/netbuf.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/netdb.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/netifapi.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/sockets.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/api/tcpip.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/autoip.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/icmp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/igmp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/inet.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/inet_chksum.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/ip.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/ip_addr.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/ipv4/ip_frag.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/def.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/dhcp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/dns.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/init.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/lwip_timers.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/mem.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/memp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/netif.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/pbuf.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/raw.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/stats.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/sys.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/tcp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/tcp_in.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/tcp_out.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/core/udp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/src/netif/etharp.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/port/realtek/freertos/ethernetif.c>",
+	"+<" + FRAMEWORK_DIR + "/component/common/network/lwip/lwip_v" + lwip_version + "/port/realtek/freertos/sys_arch.c>",
 
 		]
 sources = sources + lwip_sources
 
 freertos_sources = list("")
-if "RTOS_HEAP1" in env.Flatten(env["CPPDEFINES"]):
-	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_1.c>"]
-elif "RTOS_HEAP2" in env.Flatten(env["CPPDEFINES"]):
-	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_2.c>"]
-elif "RTOS_HEAP3" in env.Flatten(env["CPPDEFINES"]):
-	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_3.c>"]
-elif "RTOS_HEAP4" in env.Flatten(env["CPPDEFINES"]):
-	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_4.c>"]
-else:
-	freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_5.c>"]
+heap_version = "5"
+for i, val in enumerate(env.Flatten(env["CPPDEFINES"])):
+    if val == "PIO_FRAMEWORK_AMEBAZ_FREERTOS_HEAP":
+        heap_version = str(env.Flatten(env["CPPDEFINES"])[i + 1])
+        break
+freertos_sources = ["+<" + FRAMEWORK_DIR + "/component/os/freertos/freertos_v8.1.2/Source/portable/MemMang/heap_" + heap_version + ".c>"]
 sources = sources + freertos_sources
 
 env.Replace(
