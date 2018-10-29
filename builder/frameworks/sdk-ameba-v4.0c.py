@@ -267,6 +267,7 @@ sources = [
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/uart_socket.c>",
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/webserver.c>",
 	"+<" + FRAMEWORK_DIR + "/component/common/utilities/xml.c>",
+        "+<" + FRAMEWORK_DIR + "/component/mem_wrap.c>"
 	]
 
 lwip_sources = list("")
