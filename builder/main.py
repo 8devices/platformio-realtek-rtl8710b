@@ -9,7 +9,7 @@ from platformio import util
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 OPENOCD_DIR = platform.get_package_dir("tool-openocd")
-GCC_TOOLCHAIN = join(platform.get_package_dir("toolchain-gccarmnoneeabi"), "bin")
+env["GCC_TOOLCHAIN"] = join(platform.get_package_dir("toolchain-gccarmnoneeabi"), "bin")
 
 if os.name == "nt":
 	EXECUTABLE_SUFFIX = r".exe"
@@ -29,17 +29,17 @@ else:
 	env["OPENOCD_KILL"] = " ; kill -9 $$ocdpid"
 
 env.Replace(
-	AR = join(GCC_TOOLCHAIN, "arm-none-eabi-ar" + EXECUTABLE_SUFFIX),
-	CC = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
-	CXX = join(GCC_TOOLCHAIN, "arm-none-eabi-g++" + EXECUTABLE_SUFFIX),
-	AS = join(GCC_TOOLCHAIN, "arm-none-eabi-as" + EXECUTABLE_SUFFIX),
-	NM = join(GCC_TOOLCHAIN, "arm-none-eabi-nm" + EXECUTABLE_SUFFIX),
-	LINK = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
-	LD = join(GCC_TOOLCHAIN, "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
-	GDB = join(GCC_TOOLCHAIN, "arm-none-eabi-gdb" + EXECUTABLE_SUFFIX),
-	OBJCOPY = join(GCC_TOOLCHAIN, "arm-none-eabi-objcopy" + EXECUTABLE_SUFFIX),
-	OBJDUMP = join(GCC_TOOLCHAIN, "arm-none-eabi-objdump" + EXECUTABLE_SUFFIX),
-	SIZETOOL = join(GCC_TOOLCHAIN, "arm-none-eabi-size" + EXECUTABLE_SUFFIX),
+	AR = join("$GCC_TOOLCHAIN", "arm-none-eabi-ar" + EXECUTABLE_SUFFIX),
+	CC = join("$GCC_TOOLCHAIN", "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	CXX = join("$GCC_TOOLCHAIN", "arm-none-eabi-g++" + EXECUTABLE_SUFFIX),
+	AS = join("$GCC_TOOLCHAIN", "arm-none-eabi-as" + EXECUTABLE_SUFFIX),
+	NM = join("$GCC_TOOLCHAIN", "arm-none-eabi-nm" + EXECUTABLE_SUFFIX),
+	LINK = join("$GCC_TOOLCHAIN", "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	LD = join("$GCC_TOOLCHAIN", "arm-none-eabi-gcc" + EXECUTABLE_SUFFIX),
+	GDB = join("$GCC_TOOLCHAIN", "arm-none-eabi-gdb" + EXECUTABLE_SUFFIX),
+	OBJCOPY = join("$GCC_TOOLCHAIN", "arm-none-eabi-objcopy" + EXECUTABLE_SUFFIX),
+	OBJDUMP = join("$GCC_TOOLCHAIN", "arm-none-eabi-objdump" + EXECUTABLE_SUFFIX),
+	SIZETOOL = join("$GCC_TOOLCHAIN", "arm-none-eabi-size" + EXECUTABLE_SUFFIX),
 	OPENOCD = join(OPENOCD_DIR, "bin", "openocd" + EXECUTABLE_SUFFIX),
 
 #	BOARD_CONFIG?

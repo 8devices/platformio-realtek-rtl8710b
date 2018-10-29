@@ -6,7 +6,8 @@
     "maximum_size": 1048576
 },
   "frameworks": [
-    "sdk-ameba-v4.0b"
+    "sdk-ameba-v4.0b",
+    "sdk-ameba-v4.0c"
   ],
   "name": "Realtek AmebaZ va0",
   "url": ".com",
