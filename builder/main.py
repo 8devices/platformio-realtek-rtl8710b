@@ -77,6 +77,7 @@ env.Replace(
 		"M3",
 		"CONFIG_PLATFORM_8711B",
 		"F_CPU=166000000L",
+		"LWIP_TIMEVAL_PRIVATE=0",
 	],
 #	//BOARD_CONFIG?
 
